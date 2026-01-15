@@ -1,0 +1,7 @@
+{
+  "name": "EasyQuali AI Foundation",
+  "description": "Next-Gen Training Management System (LMS/ERP) for French training centers, Qualiopi compliant with futuristic glassmorphism UI.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
