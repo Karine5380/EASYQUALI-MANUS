@@ -255,7 +255,7 @@ const App: React.FC = () => {
       {/* Sidebar présente sur toutes les pages sans modification de contenu */}
       <Sidebar 
         viewMode={viewMode} 
-        onToggleView={viewMode === 'super' ? toggleSuperMode : (isSuperAdmin ? toggleSuperMode : toggleView)} 
+        onToggleView={viewMode === 'super' ? toggleSuperMode : toggleView} 
         isSuperAdmin={isSuperAdmin} 
       />
       
