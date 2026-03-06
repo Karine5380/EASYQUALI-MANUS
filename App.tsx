@@ -30,7 +30,9 @@ import {
   Settings,
   ArrowLeft,
   LogOut,
-  LayoutTemplate
+  LayoutTemplate,
+  ClipboardList,
+  Library
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Programs from './pages/Programs'; 
@@ -56,6 +58,8 @@ import PublicCatalogue from './pages/PublicCatalogue';
 import PublicTrainingDetail from './pages/PublicTrainingDetail';
 import PublicRegistration from './pages/PublicRegistration';
 import StudentPortal from './pages/StudentPortal';
+import Tests from './pages/Tests';
+import Ressources from './pages/Ressources';
 import SettingsPage from './pages/Settings';
 import LandingPage from './pages/Landing';
 import BlogPage from './pages/Blog';
@@ -110,8 +114,8 @@ const Sidebar = ({ viewMode, onToggleView, isSuperAdmin }: { viewMode: string, o
           <div className="w-7 h-7 rounded-lg bg-primary-gradient flex items-center justify-center shadow-neon-pink">
             <Sparkles className="text-white w-4 h-4" />
           </div>
-          <span className="text-base font-bold bg-clip-text text-transparent bg-primary-gradient tracking-tight italic">
-            EasyQuali
+            <span className="text-base font-bold bg-clip-text text-transparent bg-primary-gradient tracking-tight italic">
+            EasyBilan
           </span>
         </Link>
       </div>
@@ -163,6 +167,10 @@ const Sidebar = ({ viewMode, onToggleView, isSuperAdmin }: { viewMode: string, o
               <SidebarItem to="/student-portal" icon={<LayoutDashboard />} label="Mon Portail" active={location.pathname === '/student-portal'} />
               <SidebarItem to="/learn/session-demo" icon={<PlayCircle />} label="E-Learning" active={location.pathname.startsWith('/learn/')} />
               <SidebarItem to="/library" icon={<FileBox />} label="Mes Documents" active={location.pathname === '/library'} />
+            </SidebarSection>
+            <SidebarSection title="BILAN DE COMPÉTENCES">
+              <SidebarItem to="/tests" icon={<ClipboardList />} label="Tests & Évaluations" active={location.pathname === '/tests'} isNew />
+              <SidebarItem to="/ressources" icon={<Library />} label="Centre de Ressources" active={location.pathname === '/ressources'} />
             </SidebarSection>
           </>
         )}
@@ -283,6 +291,8 @@ const App: React.FC = () => {
             <Route path="/catalogue" element={<PublicCatalogue />} />
             <Route path="/catalogue/formation/:id" element={<PublicTrainingDetail />} />
             <Route path="/catalogue/inscription/:id" element={<PublicRegistration />} />
+            <Route path="/tests" element={<Tests />} />
+            <Route path="/ressources" element={<Ressources />} />
           </Routes>
         </div>
       </main>
