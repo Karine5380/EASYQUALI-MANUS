@@ -60,6 +60,7 @@ import PublicRegistration from './pages/PublicRegistration';
 import StudentPortal from './pages/StudentPortal';
 import Tests from './pages/Tests';
 import Ressources from './pages/Ressources';
+import VeilleFlash from './pages/VeilleFlash';
 import SettingsPage from './pages/Settings';
 import LandingPage from './pages/Landing';
 import BlogPage from './pages/Blog';
@@ -151,6 +152,7 @@ const Sidebar = ({ viewMode, onToggleView, isSuperAdmin }: { viewMode: string, o
 
             <SidebarSection title="QUALITÉ">
               <SidebarItem to="/watcher" icon={<Sparkles />} label="Veille Automatique IA" active={location.pathname === '/watcher'} isNew />
+              <SidebarItem to="/veille" icon={<Activity />} label="Veille Flash du Jour" active={location.pathname.startsWith('/veille')} isNew />
               <SidebarItem to="/quality/dashboard" icon={<Activity />} label="Compliance Center" active={location.pathname === '/quality/dashboard'} />
               <SidebarItem to="/quality/auditor" icon={<Bot />} label="Sir Auditor (Examen)" active={location.pathname === '/quality/auditor'} />
               <SidebarItem to="/qualite" icon={<ShieldCheck />} label="Conformité Qualiopi" active={location.pathname === '/qualite'} />
@@ -292,7 +294,9 @@ const App: React.FC = () => {
             <Route path="/catalogue/formation/:id" element={<PublicTrainingDetail />} />
             <Route path="/catalogue/inscription/:id" element={<PublicRegistration />} />
             <Route path="/tests" element={<Tests />} />
-            <Route path="/ressources" element={<Ressources />} />
+              <Route path="/ressources" element={<Ressources />} />
+              <Route path="/veille" element={<VeilleFlash />} />
+              <Route path="/veille/:date" element={<VeilleFlash />} />
           </Routes>
         </div>
       </main>
