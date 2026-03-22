@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Veille Flash Formation Pro – 22 Mars 2026 | Evolut'In Academy</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0d0d1a;
+      color: #e8e0f5;
+      line-height: 1.7;
+    }
+
+    /* ===== GRADIENT PALETTE ===== */
+    :root {
+      --violet:  #7B2FBE;
+      --violet2: #9B59D0;
+      --rose:    #E040FB;
+      --rose2:   #F06292;
+      --neon:    #CE93D8;
+      --dark:    #0d0d1a;
+      --card:    #1a1a2e;
+      --card2:   #16213e;
+      --text:    #e8e0f5;
+      --muted:   #a89bc2;
+      --border:  rgba(206,147,216,0.25);
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, var(--violet) 0%, var(--rose) 100%);
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%);
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50px;
+      padding: 0.35rem 1.2rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    header h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+      line-height: 1.2;
+    }
+    header h1 span {
+      display: block;
+      font-size: 0.55em;
+      font-weight: 400;
+      opacity: 0.9;
+      margin-top: 0.4rem;
+      letter-spacing: 0.05em;
+    }
+    .header-meta {
+      margin-top: 1.2rem;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .header-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+    /* ===== INTRO BANNER ===== */
+    .intro-banner {
+      background: linear-gradient(90deg, rgba(123,47,190,0.4), rgba(224,64,251,0.4));
+      border-left: 4px solid var(--rose);
+      margin: 2rem auto;
+      max-width: 860px;
+      padding: 1.2rem 1.8rem;
+      border-radius: 0 12px 12px 0;
+      font-size: 1rem;
+      color: var(--neon);
+      font-style: italic;
+    }
+
+    /* ===== NAVIGATION PILLS ===== */
+    nav.pills {
+      display: flex;
+      justify-content: center;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      padding: 1.5rem 1rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    nav.pills a {
+      text-decoration: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--neon);
+      border-radius: 50px;
+      padding: 0.45rem 1.1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.25s ease;
+    }
+    nav.pills a:hover {
+      background: linear-gradient(135deg, var(--violet), var(--rose));
+      color: #fff;
+      border-color: transparent;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(224,64,251,0.3);
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.2rem 3rem;
+    }
+
+    /* ===== SECTION CARDS ===== */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .section-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(123,47,190,0.25);
+    }
+
+    .section-header {
+      padding: 1.4rem 1.8rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .icon-legal   { background: linear-gradient(135deg, #3949AB, #7B2FBE); }
+    .icon-metiers { background: linear-gradient(135deg, #00897B, #26C6DA); }
+    .icon-pedago  { background: linear-gradient(135deg, #F57C00, #E040FB); }
+    .icon-handicap{ background: linear-gradient(135deg, #C62828, #E040FB); }
+
+    .section-title-block h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .section-title-block .indicator-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.7rem;
+      border-radius: 50px;
+      margin-bottom: 0.4rem;
+    }
+    .tag-legal    { background: rgba(123,47,190,0.3); color: #CE93D8; border: 1px solid rgba(123,47,190,0.5); }
+    .tag-metiers  { background: rgba(0,137,123,0.3);  color: #80CBC4; border: 1px solid rgba(0,137,123,0.5); }
+    .tag-pedago   { background: rgba(245,124,0,0.3);  color: #FFCC80; border: 1px solid rgba(245,124,0,0.5); }
+    .tag-handicap { background: rgba(198,40,40,0.3);  color: #EF9A9A; border: 1px solid rgba(198,40,40,0.5); }
+
+    .section-body { padding: 1.4rem 1.8rem; }
+
+    /* ===== NEWS ITEMS ===== */
+    .news-item {
+      margin-bottom: 1.6rem;
+      padding-bottom: 1.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .news-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .news-item h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--neon);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .news-item h3::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 18px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--violet), var(--rose));
+      flex-shrink: 0;
+    }
+    .news-item p {
+      font-size: 0.93rem;
+      color: var(--text);
+      opacity: 0.9;
+    }
+    .source-tag {
+      display: inline-block;
+      margin-top: 0.8rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 0.2rem 0.7rem;
+    }
+
+    /* ===== ACTION BOX ===== */
+    .action-box {
+      background: linear-gradient(135deg, rgba(123,47,190,0.15), rgba(224,64,251,0.15));
+      border: 1px solid rgba(224,64,251,0.3);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
+      margin-top: 1.2rem;
+    }
+    .action-box p {
+      font-size: 0.85rem;
+      color: var(--neon);
+    }
+    .action-box strong { color: #fff; }
+
+    /* ===== URGENCY BADGE ===== */
+    .urgency-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(135deg, #C62828, #E040FB);
+      color: #fff;
+      border-radius: 50px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    /* ===== SUMMARY BOX ===== */
+    .summary-box {
+      background: linear-gradient(135deg, var(--violet) 0%, var(--rose) 100%);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .summary-box h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1.2rem;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+    .summary-item {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .summary-item .num {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      display: block;
+    }
+    .summary-item .label {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.85);
+      font-weight: 500;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--card2);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 2rem 1rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    footer .footer-logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--violet2), var(--rose));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .section-header { flex-direction: column; gap: 0.7rem; }
+      .header-meta { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="header-badge">📡 Veille Flash Quotidienne</div>
+    <h1>
+      Formation Professionnelle
+      <span>Dimanche 22 Mars 2026 · Groupe Evolut'In Academy</span>
+    </h1>
+    <div class="header-meta">
+      <span>⚖️ Indicateur 23 · Légal</span>
+      <span>💼 Indicateur 24 · Métiers</span>
+      <span>💡 Indicateur 25 · Pédagogie</span>
+      <span>🤝 Indicateur 26 · Handicap</span>
+    </div>
+  </header>
+
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="pills" aria-label="Navigation rapide">
+    <a href="#legal">⚖️ Légal & Réglementaire</a>
+    <a href="#metiers">💼 Compétences & Métiers</a>
+    <a href="#pedago">💡 Pédagogie & Tech</a>
+    <a href="#handicap">🤝 Handicap & Accessibilité</a>
+  </nav>
+
+  <main>
+
+    <!-- ===== INTRO ===== -->
+    <p class="intro-banner">
+      Votre veille quotidienne Qualiopi — 4 actualités clés pour piloter votre organisme de formation avec agilité et conformité. Bonne lecture !
+    </p>
+
+    <!-- ===== SUMMARY ===== -->
+    <div class="summary-box">
+      <h2>📊 Le Chiffre du Jour</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="num">3 000 €</span>
+          <span class="label">Abondement CPF correctif — Cour de cassation, 21 jan. 2026</span>
+        </div>
+        <div class="summary-item">
+          <span class="num">25 mars</span>
+          <span class="label">Forum de l'alternance — Toulenne, Gironde</span>
+        </div>
+        <div class="summary-item">
+          <span class="num">1er avril</span>
+          <span class="label">Échéance accessibilité lieux de travail (ERP)</span>
+        </div>
+        <div class="summary-item">
+          <span class="num">6 mars</span>
+          <span class="label">Décret aide exceptionnelle aux employeurs d'apprentis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SECTION 1 : LÉGAL ===== -->
+    <section class="section-card" id="legal">
+      <div class="section-header">
+        <div class="section-icon icon-legal">⚖️</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-legal">Indicateur 23</span>
+          <h2>Veille Légale et Réglementaire</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <h3>Jurisprudence : Abondement CPF et Entretien Professionnel</h3>
+          <p>
+            La Cour de cassation a rendu un arrêt structurant (n° 24-12.972, 21 janvier 2026), récemment analysé par l'UNSA. Il précise les conditions de l'abondement correctif du Compte Personnel de Formation (CPF). Contrairement à une idée reçue, l'absence d'entretien professionnel ne prive pas automatiquement le salarié de l'abondement de 3 000 €. La Cour confirme que l'ensemble des critères légaux sur la période de six ans doit être évalué globalement. Une nuance essentielle pour tout conseil en formation.
+          </p>
+          <span class="source-tag">📌 Source : UNSA – Vos droits</span>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Mettre à jour vos fiches-conseils sur le CPF et former vos équipes commerciales à cette jurisprudence pour éviter les mauvais conseils aux employeurs et aux salariés.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 2 : MÉTIERS ===== -->
+    <section class="section-card" id="metiers">
+      <div class="section-header">
+        <div class="section-icon icon-metiers">💼</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-metiers">Indicateur 24</span>
+          <h2>Évolution des Compétences et des Métiers</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <h3>Forum de l'Alternance en Gironde : l'alternance pour tous les publics</h3>
+          <p>
+            La Mission Locale Sud-Gironde organise un Forum de l'alternance le mercredi 25 mars 2026 à l'Espace culturel de Toulenne (Gironde), de 14h à 16h30. Cet événement s'adresse explicitement aux jeunes <em>et</em> aux adultes en reconversion. Il réunit employeurs locaux, organismes de formation et acteurs de l'emploi, avec la présence du Bus de l'artisanat pour valoriser les métiers en tension. Ce forum illustre la montée en puissance de l'alternance comme réponse aux besoins en compétences des territoires.
+          </p>
+          <span class="source-tag">📌 Source : Actu.fr Nouvelle-Aquitaine – 22 mars 2026</span>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Identifier les métiers en tension sur votre territoire et adapter votre offre de formation en alternance pour les adultes en reconversion. Participez aux forums locaux pour développer votre réseau d'entreprises partenaires.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 3 : PÉDAGOGIE ===== -->
+    <section class="section-card" id="pedago">
+      <div class="section-header">
+        <div class="section-icon icon-pedago">💡</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-pedago">Indicateur 25</span>
+          <h2>Innovation Pédagogique et Technologique</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <h3>Business Models 2026 et Intelligence Artificielle : la double révolution</h3>
+          <p>
+            Digiforma Academy annonce deux webinaires stratégiques pour la fin mars : le 26 mars, "Quels business models adopter en 2026 ?" (1h05) et "Le café veille Spécial pédagogie et e-learning" (1h). Ces rendez-vous s'inscrivent dans un contexte de transformation profonde du secteur : modèles hybrides, micro-learning, B2B direct. Parallèlement, l'Intelligence Artificielle s'impose comme compétence transversale incontournable, avec une demande croissante de formateurs capables d'animer des sessions d'initiation à l'IA (No-Code, automatisation) pour tous les publics adultes.
+          </p>
+          <span class="source-tag">📌 Source : Digiforma Academy / Indeed – 22 mars 2026</span>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Inscrivez-vous au webinaire Digiforma du 26 mars sur les business models. Lancez une réflexion interne sur l'intégration de l'IA dans votre ingénierie pédagogique et dans vos offres de formation clients.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 4 : HANDICAP ===== -->
+    <section class="section-card" id="handicap">
+      <div class="section-header">
+        <div class="section-icon icon-handicap">🤝</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-handicap">Indicateur 26</span>
+          <h2>Handicap et Accessibilité</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <div class="urgency-badge">🔴 Urgent — Échéance 1er avril 2026</div>
+          <h3>Accessibilité des lieux de travail : l'heure du bilan</h3>
+          <p>
+            Le 1er avril 2026 marque une échéance réglementaire importante concernant l'accessibilité des lieux de travail. En tant qu'Organismes de Formation (ERP – Établissements Recevant du Public), vous êtes directement concernés. Un audit de conformité de vos locaux s'impose avant cette date pour éviter tout risque juridique et garantir l'accueil de tous les apprenants, quelles que soient leurs situations de handicap.
+          </p>
+          <span class="source-tag">📌 Source : SOS Handicap – 22 mars 2026</span>
+        </div>
+        <div class="news-item">
+          <h3>Décret du 6 mars 2026 : aide exceptionnelle aux employeurs d'apprentis</h3>
+          <p>
+            Le réseau Cheops Grand-Est met en avant le décret du 6 mars 2026 relatif à l'aide exceptionnelle aux employeurs d'apprentis. Ce dispositif constitue un levier puissant pour favoriser l'insertion professionnelle des personnes en situation de handicap par la voie de l'alternance. Les référents handicap des CFA et OF doivent maîtriser ce décret pour rassurer les employeurs et faciliter la signature de contrats d'apprentissage pour les publics RQTH.
+          </p>
+          <span class="source-tag">📌 Source : Cheops Grand-Est – 20 mars 2026</span>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> (1) Mandater votre référent handicap pour un audit d'accessibilité de vos locaux avant le 1er avril. (2) Intégrer le décret du 6 mars 2026 dans votre argumentaire commercial auprès des employeurs pour les contrats d'apprentissage RQTH.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="footer-logo">Evolut'In Academy</div>
+    <p>Veille Flash Formation Professionnelle · 22 Mars 2026</p>
+    <p style="margin-top:0.4rem;">Conforme Qualiopi · Indicateurs 23, 24, 25 &amp; 26</p>
+    <p style="margin-top:0.8rem; font-size:0.75rem; opacity:0.6;">
+      Ce document est produit à titre informatif. Consultez un juriste pour toute décision à portée légale.
+    </p>
+  </footer>
+
+</body>
+</html>
