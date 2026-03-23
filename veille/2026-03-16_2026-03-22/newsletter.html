@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Veille Flash Formation Pro – Semaine du 16 au 22 mars 2026 | Evolut'In Academy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0a0010;
+      color: #f0e8ff;
+      line-height: 1.75;
+    }
+    /* CHARTE EVOLUT'IN : violet #6B0FD4 → rose néon #FF2D8A */
+    :root {
+      --v1: #6B0FD4; --v2: #8B2BE2;
+      --r1: #E0007A; --r2: #FF2D8A; --r3: #FF6EB4;
+      --grad:  linear-gradient(135deg, #6B0FD4 0%, #C0007E 60%, #FF2D8A 100%);
+      --grad2: linear-gradient(90deg, #6B0FD4, #FF2D8A);
+      --dark: #0a0010; --card: #130020; --card2: #1a0030;
+      --text: #f0e8ff; --muted: #c9a8e8;
+      --border: rgba(255, 45, 138, 0.2);
+    }
+    header {
+      background: var(--grad);
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    header::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 75% 25%, rgba(255,255,255,0.1) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .header-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .logo-wrap { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,0.4); box-shadow: 0 0 24px rgba(255,45,138,0.5); }
+    .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .header-badge { display: inline-block; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.35); border-radius: 50px; padding: 0.3rem 1.1rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
+    header h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.4); line-height: 1.2; }
+    header h1 span { display: block; font-size: 0.52em; font-weight: 400; opacity: 0.88; margin-top: 0.35rem; letter-spacing: 0.04em; }
+    .header-meta { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; font-size: 0.82rem; color: rgba(255,255,255,0.85); }
+    nav.pills { display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; padding: 1.4rem 1rem; max-width: 860px; margin: 0 auto; }
+    nav.pills a { text-decoration: none; background: var(--card2); border: 1px solid var(--border); color: var(--r3); border-radius: 50px; padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: 600; transition: all 0.22s ease; }
+    nav.pills a:hover { background: var(--grad); color: #fff; border-color: transparent; transform: translateY(-2px); box-shadow: 0 4px 18px rgba(255,45,138,0.35); }
+    main { max-width: 860px; margin: 0 auto; padding: 0 1.2rem 3rem; }
+    .intro-banner { background: linear-gradient(90deg, rgba(107,15,212,0.35), rgba(255,45,138,0.35)); border-left: 4px solid var(--r2); margin: 1.8rem 0; padding: 1.1rem 1.6rem; border-radius: 0 12px 12px 0; font-size: 0.97rem; color: var(--r3); font-style: italic; }
+    .summary-box { background: var(--grad); border-radius: 16px; padding: 1.8rem; margin-bottom: 2rem; text-align: center; }
+    .summary-box h2 { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 1.1rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.9rem; }
+    .summary-item { background: rgba(255,255,255,0.14); backdrop-filter: blur(6px); border-radius: 12px; padding: 0.9rem; border: 1px solid rgba(255,255,255,0.22); }
+    .summary-item .num { font-size: 1.8rem; font-weight: 800; color: #fff; display: block; line-height: 1.1; }
+    .summary-item .label { font-size: 0.72rem; color: rgba(255,255,255,0.85); font-weight: 500; margin-top: 0.3rem; display: block; }
+    .section-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 1.8rem; overflow: hidden; transition: transform 0.22s ease, box-shadow 0.22s ease; }
+    .section-card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(255,45,138,0.2); }
+    .section-header { padding: 1.3rem 1.7rem 0.9rem; display: flex; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--border); }
+    .section-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+    .icon-legal    { background: linear-gradient(135deg, #4A0090, #9B00D4); }
+    .icon-metiers  { background: linear-gradient(135deg, #007B6E, #00C9B1); }
+    .icon-pedago   { background: linear-gradient(135deg, #C0007E, #FF2D8A); }
+    .icon-handicap { background: linear-gradient(135deg, #8B0000, #E0007A); }
+    .section-title-block h2 { font-size: 1.1rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .indicator-tag { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.18rem 0.65rem; border-radius: 50px; margin-bottom: 0.35rem; }
+    .tag-legal    { background: rgba(107,15,212,0.3); color: #D4A0FF; border: 1px solid rgba(107,15,212,0.5); }
+    .tag-metiers  { background: rgba(0,123,110,0.3);  color: #80EAD8; border: 1px solid rgba(0,123,110,0.5); }
+    .tag-pedago   { background: rgba(192,0,126,0.3);  color: #FF9DD8; border: 1px solid rgba(192,0,126,0.5); }
+    .tag-handicap { background: rgba(139,0,0,0.3);    color: #FFB0B0; border: 1px solid rgba(139,0,0,0.5); }
+    .section-body { padding: 1.3rem 1.7rem; }
+    .news-item { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .news-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .news-item h3 { font-size: 0.98rem; font-weight: 700; color: var(--r3); margin-bottom: 0.55rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .news-item h3::before { content: ''; display: inline-block; width: 4px; height: 18px; border-radius: 2px; background: var(--grad2); flex-shrink: 0; margin-top: 2px; }
+    .news-item p { font-size: 0.92rem; color: var(--text); opacity: 0.9; }
+    a.source-tag { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.75rem; font-size: 0.72rem; color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 50px; padding: 0.22rem 0.75rem; text-decoration: none; transition: all 0.2s ease; }
+    a.source-tag:hover { background: rgba(255,45,138,0.15); color: var(--r2); border-color: rgba(255,45,138,0.45); }
+    .action-box { background: linear-gradient(135deg, rgba(107,15,212,0.15), rgba(255,45,138,0.15)); border: 1px solid rgba(255,45,138,0.25); border-radius: 10px; padding: 0.9rem 1.2rem; margin-top: 1rem; }
+    .action-box p { font-size: 0.84rem; color: var(--r3); }
+    .action-box strong { color: #fff; }
+    .urgency-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(135deg, #8B0000, var(--r2)); color: #fff; border-radius: 50px; padding: 0.28rem 0.85rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.7rem; }
+    footer { background: var(--card2); border-top: 1px solid var(--border); text-align: center; padding: 2rem 1rem; font-size: 0.8rem; color: var(--muted); }
+    .footer-logo { font-size: 1.05rem; font-weight: 800; background: var(--grad2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.4rem; }
+    @media (max-width: 600px) { .section-header { flex-direction: column; gap: 0.6rem; } .header-meta { gap: 0.8rem; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <img src="logo.png" alt="Logo Evolut'In Academy" />
+      </div>
+      <div class="header-badge">📡 Veille Flash Hebdomadaire</div>
+      <h1>
+        Formation Professionnelle
+        <span>Semaine du 16 au 22 mars 2026 · Groupe Evolut'In Academy</span>
+      </h1>
+      <div class="header-meta">
+        <span>⚖️ Ind. 23 · Légal</span>
+        <span>💼 Ind. 24 · Métiers</span>
+        <span>💡 Ind. 25 · Pédagogie</span>
+        <span>🤝 Ind. 26 · Handicap</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="pills" aria-label="Navigation rapide">
+    <a href="#legal">⚖️ Légal &amp; Réglementaire</a>
+    <a href="#metiers">💼 Compétences &amp; Métiers</a>
+    <a href="#pedago">💡 Pédagogie &amp; Tech</a>
+    <a href="#handicap">🤝 Handicap &amp; Accessibilité</a>
+  </nav>
+
+  <main>
+
+    <p class="intro-banner">
+      Votre veille hebdomadaire Qualiopi — 4 actualités clés pour piloter votre organisme de formation avec agilité et conformité. Bonne lecture !
+    </p>
+
+    <div class="summary-box">
+      <h2>Le Chiffre de la Semaine</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="num">31</span>
+          <span class="label">Mai 2026 : Date butoir BPF</span>
+        </div>
+        <div class="summary-item">
+          <span class="num">5 000€</span>
+          <span class="label">Moyenne financement Reconversion</span>
+        </div>
+        <div class="summary-item">
+          <span class="num">100%</span>
+          <span class="label">Simulations IA immersives</span>
+        </div>
+        <div class="summary-item">
+          <span class="num">4 000€</span>
+          <span class="label">Surcoût contrat FPT (Handicap)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 1 : LÉGAL (Indicateur 23) -->
+    <section class="section-card" id="legal">
+      <div class="section-header">
+        <div class="section-icon icon-legal">⚖️</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-legal">Indicateur 23</span>
+          <h2>Veille Légale et Réglementaire</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <div class="urgency-badge">🔴 Urgent — 31 Mai 2026</div>
+          <h3>Bilan Pédagogique et Financier (BPF) 2026 : Obligations et échéances</h3>
+          <p>La campagne du Bilan Pédagogique et Financier (BPF) 2026 est officiellement lancée. Tous les organismes de formation détenteurs d'un NDA doivent obligatoirement télédéclarer leur activité de l'année 2025 sur la plateforme "Mon Activité Formation" avant le 31 mai 2026. Même en cas d'absence d'activité (BPF "néant"), la déclaration reste obligatoire sous peine de caducité du NDA. Les contrôles de la DREETS seront renforcés cette année pour vérifier la cohérence entre le BPF et la comptabilité de l'organisme.</p>
+          <a class="source-tag" href="https://openformations.com/blog/bilan-pedagogique-financier-guide-2026" target="_blank" rel="noopener">📌 OpenFormations - Guide BPF 2026</a>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Planifier immédiatement la collecte des données comptables et pédagogiques de 2025 pour anticiper la saisie du BPF avant la date butoir du 31 mai 2026.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 : MÉTIERS (Indicateur 24) -->
+    <section class="section-card" id="metiers">
+      <div class="section-header">
+        <div class="section-icon icon-metiers">💼</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-metiers">Indicateur 24</span>
+          <h2>Évolution des Compétences et des Métiers</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <h3>Entrée en vigueur de la nouvelle "Période de Reconversion"</h3>
+          <p>Issue de la loi du 24 octobre 2025, la nouvelle "période de reconversion" est officiellement entrée en vigueur, remplaçant les anciens dispositifs Pro-A et Transco. Ce dispositif est désormais ouvert à tous les salariés, sans condition d'ancienneté ou de type de contrat, pour favoriser la mobilité interne ou externe. Le financement est assuré principalement par les OPCO (forfait de 9,15 €/h en l'absence d'accord de branche, avec une prise en charge moyenne de 5 000 € par parcours).</p>
+          <a class="source-tag" href="https://www.cnfce.com/actualites/periode-de-reconversion" target="_blank" rel="noopener">📌 CNFCE - Période de reconversion</a>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Intégrer ce nouveau dispositif dans l'argumentaire commercial B2B et accompagner les entreprises partenaires dans le montage des dossiers de financement OPCO pour la reconversion de leurs salariés.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 : PÉDAGOGIE (Indicateur 25) -->
+    <section class="section-card" id="pedago">
+      <div class="section-header">
+        <div class="section-icon icon-pedago">💡</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-pedago">Indicateur 25</span>
+          <h2>Innovation Pédagogique et Technologique</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <h3>L'IA révolutionne les simulations et jeux de rôle en formation</h3>
+          <p>L'intelligence artificielle générative franchit un nouveau cap dans la formation professionnelle en remplaçant les jeux de rôle traditionnels par des simulations immersives. Ces outils permettent aux apprenants de s'entraîner face à des avatars IA (clients difficiles, collaborateurs en conflit) qui réagissent en temps réel et de manière imprévisible. Cette innovation permet de lever le "plafond de verre pédagogique" en garantissant une mise en pratique concrète des soft skills, avec un feedback immédiat et personnalisé.</p>
+          <a class="source-tag" href="https://www.onlineformapro.com/blog/ia/simulations-ia-en-formation-professionnelle-lavenir-du-jeu-de-role/" target="_blank" rel="noopener">📌 Onlineformapro - Simulations IA</a>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Tester une solution de simulation IA (comme HeyGen ou des chatbots spécialisés) pour digitaliser et moderniser les modules de formation axés sur la relation client ou le management.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4 : HANDICAP (Indicateur 26) -->
+    <section class="section-card" id="handicap">
+      <div class="section-header">
+        <div class="section-icon icon-handicap">🤝</div>
+        <div class="section-title-block">
+          <span class="indicator-tag tag-handicap">Indicateur 26</span>
+          <h2>Handicap et Accessibilité</h2>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="news-item">
+          <h3>Nouveau guide FIPHFP sur l'apprentissage et le handicap</h3>
+          <p>Le FIPHFP a publié en mars 2026 son nouveau guide pratique sur l'apprentissage et le handicap, intégrant les évolutions de la loi de finances 2026. Le document insiste sur la "coresponsabilité" entre le CFA (accessibilité universelle) et l'employeur (aménagement raisonnable du poste). Parmi les nouveautés : la suppression de l'aide forfaitaire de 500 € pour le permis de conduire, mais le maintien d'aides majeures (jusqu'à 4 000 € de surcoût contrat via le CNFPT pour la fonction publique territoriale).</p>
+          <a class="source-tag" href="https://www.cdg22.fr/jcms/prod_279026/fr/fiphfp-nouveau-guide-sur-l-apprentissage-et-le-handicap-au-sein-de-la-fpt" target="_blank" rel="noopener">📌 CDG 22 - Guide FIPHFP 2026</a>
+          <div class="action-box">
+            <p><strong>Action recommandée :</strong> Mettre à jour le livret d'accueil du référent handicap avec les nouveaux montants d'aides 2026 et renforcer la communication tripartite (CFA, employeur, apprenti) dès la signature du contrat.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="footer-logo">Evolut'In Academy</div>
+    <p>Veille Flash Formation Professionnelle · Semaine du 16 au 22 mars 2026</p>
+    <p style="margin-top:0.35rem;">Conforme Qualiopi · Indicateurs 23, 24, 25 &amp; 26</p>
+    <p style="margin-top:0.75rem; font-size:0.72rem; opacity:0.55;">
+      Ce document est produit à titre informatif. Consultez un juriste pour toute décision à portée légale.
+    </p>
+  </footer>
+
+</body>
+</html>
