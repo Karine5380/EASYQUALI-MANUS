@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Variables d'environnement
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=10000
 
 # Répertoire de travail
 WORKDIR /app
@@ -27,7 +27,7 @@ COPY build_knowledge_base.py .
 COPY vector_store/ ./vector_store/
 
 # Exposer le port
-EXPOSE $PORT
+EXPOSE 10000
 
 # Commande de démarrage
 CMD uvicorn bot_webhook:app --host 0.0.0.0 --port $PORT
