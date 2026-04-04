@@ -2,8 +2,8 @@
 *.env
 .env
 
-# Base de connaissances vectorielle (générée localement)
-vector_store/
+# Base de connaissances vectorielle - incluse dans le repo pour le déploiement
+# vector_store/
 
 # Logs
 *.log
