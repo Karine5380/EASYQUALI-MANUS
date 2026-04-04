@@ -1,0 +1,25 @@
+# Fichiers sensibles
+*.env
+.env
+
+# Base de connaissances vectorielle (générée localement)
+vector_store/
+
+# Logs
+*.log
+
+# PID
+*.pid
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# PDF source (données privées)
+*.pdf
