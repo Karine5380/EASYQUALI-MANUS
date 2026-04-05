@@ -1,12 +1,15 @@
 """
-Bot Telegram - Agent IA Coach Formateur (Version Webhook pour déploiement cloud)
+Bot Telegram - Agent IA Coach Formateur (Version Webhook - Plan Free Render)
 Formation certifiante : "Intégrer l'IA dans les missions du consultant formateur"
 
-Mode Webhook : le bot expose un endpoint HTTP que Telegram appelle directement.
-Adapté pour Render.com, Railway, Heroku, etc.
+Architecture légère : TF-IDF + GPT-4.1-mini
+- Pas de PyTorch / sentence-transformers
+- RAM < 150 MB (compatible plan Free Render)
+- Mode Webhook FastAPI
 """
 
 import os
+import pickle
 import logging
 import asyncio
 from datetime import datetime
@@ -22,25 +25,23 @@ from telegram.ext import (
 )
 from telegram.constants import ParseMode, ChatAction
 from telegram.request import HTTPXRequest
-
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from openai import OpenAI
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
-# ─── Configuration (variables d'environnement) ────────────────────────────────
+# ─── Configuration ────────────────────────────────────────────────────────────
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")  # ex: https://mon-bot.onrender.com
-PORT = int(os.environ.get("PORT", 8000))
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
+PORT = int(os.environ.get("PORT", 10000))
 
-# Chemin du vector store : /app/vector_store en Docker, chemin local sinon
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 VECTOR_STORE_PATH = os.environ.get(
     "VECTOR_STORE_PATH",
     os.path.join(_script_dir, "vector_store")
 )
-EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+KB_PATH = os.path.join(VECTOR_STORE_PATH, "knowledge_base.pkl")
 LLM_MODEL = "gpt-4.1-mini"
 TOP_K_DOCS = 5
 
@@ -48,342 +49,280 @@ TOP_K_DOCS = 5
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# ─── Application FastAPI ──────────────────────────────────────────────────────
+# ─── Chargement de la base de connaissances ───────────────────────────────────
 
-app = FastAPI(title="Coach Formateur IA Bot")
+kb_data = None
 
-# ─── Initialisation des composants RAG ────────────────────────────────────────
+def load_knowledge_base():
+    global kb_data
+    if kb_data is not None:
+        return kb_data
+    logger.info(f"Chargement de la base de connaissances depuis: {KB_PATH}")
+    try:
+        with open(KB_PATH, "rb") as f:
+            kb_data = pickle.load(f)
+        logger.info(f"Base chargée: {len(kb_data['chunks'])} chunks")
+        return kb_data
+    except Exception as e:
+        logger.error(f"Erreur chargement KB: {e}")
+        return None
 
-logger.info("Chargement du modèle d'embeddings...")
-embeddings = HuggingFaceEmbeddings(
-    model_name=EMBEDDING_MODEL,
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": True},
-)
+def retrieve_context(query: str, top_k: int = TOP_K_DOCS) -> str:
+    """Recherche les passages les plus pertinents via TF-IDF."""
+    kb = load_knowledge_base()
+    if kb is None:
+        return ""
 
-logger.info("Chargement de la base de connaissances FAISS...")
-vector_store = FAISS.load_local(
-    VECTOR_STORE_PATH,
-    embeddings,
-    allow_dangerous_deserialization=True,
-)
-logger.info("Base de connaissances chargée avec succès !")
+    try:
+        vectorizer = kb["vectorizer"]
+        tfidf_matrix = kb["tfidf_matrix"]
+        chunks = kb["chunks"]
 
-# Utiliser le proxy Manus si disponible, sinon OpenAI direct
-_openai_base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-if OPENAI_API_KEY:
-    openai_client = OpenAI(api_key=OPENAI_API_KEY, base_url=_openai_base_url)
-else:
-    # Fallback : utilise les variables d'environnement par défaut
-    openai_client = OpenAI()
+        query_vec = vectorizer.transform([query])
+        scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
+        top_indices = scores.argsort()[-top_k:][::-1]
 
-# ─── Prompt système ───────────────────────────────────────────────────────────
+        relevant_chunks = []
+        for idx in top_indices:
+            if scores[idx] > 0.01:
+                relevant_chunks.append(chunks[idx])
 
-SYSTEM_PROMPT = """Tu es un coach formateur expert et bienveillant, spécialisé dans la formation certifiante "Intégrer l'IA dans les missions du consultant formateur".
+        return "\n\n---\n\n".join(relevant_chunks)
+    except Exception as e:
+        logger.error(f"Erreur retrieve_context: {e}")
+        return ""
 
-Ton rôle est d'accompagner les stagiaires dans leur apprentissage en répondant à leurs questions de manière :
-- **Pédagogique** : explique clairement, avec des exemples concrets tirés du livret
-- **Encourageante** : motive les stagiaires, valorise leurs efforts
-- **Précise** : base-toi sur le contenu du livret de formation fourni
-- **Pratique** : donne des conseils applicables immédiatement
+# ─── Client OpenAI ────────────────────────────────────────────────────────────
 
-La formation couvre 6 modules :
-1. Introduction à l'IA et ses applications en formation
-2. Conception de parcours pédagogiques personnalisés
-3. Automatisation des processus de formation
-4. Animation de formations avec l'IA et évaluations des acquis
-5. Création de contenus pédagogiques multimédias
-6. Veille technologique IA
-
-Règles importantes :
-- Réponds TOUJOURS en français
-- Si la question ne concerne pas la formation, redirige poliment vers les sujets de la formation
-- Si tu n'as pas d'information dans le contexte fourni, dis-le honnêtement et encourage le stagiaire à consulter le livret ou à poser la question lors d'une classe synchrone
-- Utilise des emojis avec modération pour rendre les réponses plus engageantes
-- Formate tes réponses avec du Markdown pour une meilleure lisibilité
-- Termine toujours par une question ou une invitation à aller plus loin
-
-Contexte du livret de formation (passages pertinents) :
-{context}
-"""
-
-# ─── Fonctions utilitaires ────────────────────────────────────────────────────
-
-def retrieve_context(question: str) -> str:
-    docs = vector_store.similarity_search(question, k=TOP_K_DOCS)
-    context_parts = []
-    for i, doc in enumerate(docs, 1):
-        page = doc.metadata.get("page", "?")
-        content = doc.page_content.strip()
-        if content:
-            context_parts.append(f"[Passage {i} - Page {page + 1}]\n{content}")
-    return "\n\n---\n\n".join(context_parts)
-
+def get_openai_client():
+    """Retourne le client OpenAI configuré selon l'environnement."""
+    if OPENAI_API_KEY and OPENAI_API_KEY.startswith("sk-"):
+        # Production : API OpenAI native
+        return OpenAI(api_key=OPENAI_API_KEY, base_url="https://api.openai.com/v1")
+    else:
+        # Développement : proxy Manus
+        return OpenAI()
 
 def generate_response(question: str, context: str) -> str:
-    system_message = SYSTEM_PROMPT.format(context=context)
-    response = openai_client.chat.completions.create(
-        model=LLM_MODEL,
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": question},
-        ],
-        max_tokens=1000,
-        temperature=0.7,
-    )
-    return response.choices[0].message.content
+    """Génère une réponse pédagogique basée sur le contexte du cours."""
+    client = get_openai_client()
 
+    system_prompt = """Tu es un coach formateur expert en Intelligence Artificielle, spécialisé dans la formation certifiante "Intégrer l'IA dans les missions du consultant formateur".
 
-# ─── Gestionnaires de commandes Telegram ──────────────────────────────────────
+Ton rôle est d'accompagner les stagiaires avec bienveillance et pédagogie. Tu réponds uniquement en te basant sur le contenu du cours fourni dans le contexte.
 
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    first_name = user.first_name if user.first_name else "stagiaire"
-    welcome_message = (
-        f"👋 Bonjour {first_name} !\n\n"
-        "Je suis votre *Coach IA Formateur*, votre assistant personnel pour la formation certifiante "
-        "*\"Intégrer l'IA dans les missions du consultant formateur\"* 🎓\n\n"
-        "Je suis là pour vous aider à :\n"
-        "• Comprendre les concepts du cours\n"
-        "• Répondre à vos questions sur les 6 modules\n"
-        "• Vous guider dans la pratique des outils IA\n"
-        "• Préparer votre certification\n\n"
-        "📚 *Les 6 modules de votre formation :*\n"
-        "1️⃣ Introduction à l'IA et ses applications\n"
-        "2️⃣ Conception de parcours pédagogiques\n"
-        "3️⃣ Automatisation des processus\n"
-        "4️⃣ Animation et évaluation avec l'IA\n"
-        "5️⃣ Contenus pédagogiques multimédias\n"
-        "6️⃣ Veille technologique IA\n\n"
-        "💬 Posez-moi vos questions librement !\n\n"
-        "Tapez /aide pour voir toutes les commandes disponibles."
-    )
-    await update.message.reply_text(welcome_message, parse_mode=ParseMode.MARKDOWN)
+Règles :
+- Réponds toujours en français
+- Sois pédagogique, clair et encourageant
+- Cite les modules ou passages du cours quand c'est pertinent
+- Si la réponse n'est pas dans le cours, dis-le honnêtement et oriente vers le formateur
+- Utilise des exemples concrets liés à la formation
+- Structure tes réponses avec des titres et listes quand c'est utile
+- Termine par une question ou un encouragement pour maintenir l'engagement"""
 
+    user_message = f"""Question de l'apprenant : {question}
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    help_text = (
-        "🤖 *Commandes disponibles :*\n\n"
-        "/start - Message de bienvenue\n"
-        "/aide - Afficher cette aide\n"
-        "/modules - Voir la liste des modules\n"
-        "/module1 - Module 1 : Introduction à l'IA\n"
-        "/module2 - Module 2 : Conception de parcours\n"
-        "/module3 - Module 3 : Automatisation\n"
-        "/module4 - Module 4 : Animation et évaluation\n"
-        "/module5 - Module 5 : Contenus multimédias\n"
-        "/module6 - Module 6 : Veille IA\n"
-        "/certification - Infos sur la certification\n"
-        "/reset - Réinitialiser la conversation\n\n"
-        "💡 Ou posez simplement votre question directement !"
-    )
-    await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
+Contexte extrait du cours :
+{context if context else "Aucun passage spécifique trouvé pour cette question."}
 
+Réponds de manière pédagogique et bienveillante."""
 
-async def modules_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    modules_text = (
-        "📚 *Les 6 modules de votre formation certifiante :*\n\n"
-        "*Module 1* - Introduction à l'IA et ses applications en formation\n"
-        "_Comprendre l'IAG, paramétrer son compte, l'art du prompt, éthique et réglementation_\n\n"
-        "*Module 2* - Conception de parcours pédagogiques personnalisés\n"
-        "_Analyse du besoin, programme de formation, charte graphique, PowerPoint avec l'IA_\n\n"
-        "*Module 3* - Automatisation des processus de formation\n"
-        "_Assistants IA, Make, n8n, automatisation avancée_\n\n"
-        "*Module 4* - Animation de formations avec l'IA et évaluations\n"
-        "_Brainstorming, jeux de rôle, QCM, enquêtes de satisfaction_\n\n"
-        "*Module 5* - Création de contenus pédagogiques multimédias\n"
-        "_Pages web, podcasts, vidéos flash, microlearning, robot SAV_\n\n"
-        "*Module 6* - Veille technologique IA\n"
-        "_Influenceurs IA, newsletters, automatisation de la veille avec Make_\n\n"
-        "Sur quel module avez-vous des questions ? 🎯"
-    )
-    await update.message.reply_text(modules_text, parse_mode=ParseMode.MARKDOWN)
-
-
-async def module_command(update: Update, context: ContextTypes.DEFAULT_TYPE, module_num: int) -> None:
-    module_descriptions = {
-        1: ("Introduction à l'IA et ses applications en formation",
-            "Que souhaitez-vous savoir sur ce module ? Vous pouvez me poser des questions sur : l'IAG, ChatGPT, l'art du prompt, les biais et hallucinations, l'éthique de l'IA, etc."),
-        2: ("Conception de parcours pédagogiques personnalisés",
-            "Posez-moi vos questions sur : l'analyse du besoin, la construction de programmes de formation, le livret stagiaire, la charte graphique, les présentations PowerPoint avec l'IA, etc."),
-        3: ("Automatisation des processus de formation",
-            "Quelles questions avez-vous sur : la création d'assistants IA, les GPTs personnalisés, Make, n8n, l'automatisation des attestations et programmes de formation, etc. ?"),
-        4: ("Animation de formations avec l'IA et évaluations des acquis",
-            "Je peux vous aider sur : le brainstorming avec l'IA, les jeux de rôle pédagogiques, la création de QCM, les enquêtes de satisfaction, etc."),
-        5: ("Création de contenus pédagogiques multimédias",
-            "Des questions sur : la création de pages web de formation, les podcasts, les vidéos flash multilingues, les microlearnings, les robots SAV post-formation, etc. ?"),
-        6: ("Veille technologique IA",
-            "Posez vos questions sur : les influenceurs IA à suivre, la veille avec ChatGPT, le résumé de newsletters et vidéos YouTube, l'automatisation de la veille avec Make, etc."),
-    }
-    title, prompt = module_descriptions.get(module_num, ("Module inconnu", ""))
-    message = f"🎯 *Module {module_num} : {title}*\n\n{prompt}"
-    await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
-
-
-async def module1_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await module_command(update, context, 1)
-
-async def module2_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await module_command(update, context, 2)
-
-async def module3_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await module_command(update, context, 3)
-
-async def module4_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await module_command(update, context, 4)
-
-async def module5_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await module_command(update, context, 5)
-
-async def module6_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await module_command(update, context, 6)
-
-
-async def certification_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    cert_text = (
-        "🏆 *Votre certification IA*\n\n"
-        "Cette formation mène à une *certification professionnelle* reconnue.\n\n"
-        "*Comment préparer votre certification :*\n"
-        "• Mettez en pratique les exercices sur vos propres cas métiers\n"
-        "• Construisez votre dossier professionnel au fil de l'eau\n"
-        "• Récupérez les exercices réalisés dans chaque module\n"
-        "• Consultez le modèle de dossier dans votre espace extranet\n\n"
-        "*Conseil clé :* Travaillez sur vos propres offres et cas réels, pas sur des cas fictifs !\n\n"
-        "Avez-vous des questions spécifiques sur la préparation de votre dossier de certification ? 📝"
-    )
-    await update.message.reply_text(cert_text, parse_mode=ParseMode.MARKDOWN)
-
-
-async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.user_data.clear()
-    await update.message.reply_text(
-        "🔄 Conversation réinitialisée ! Posez-moi votre prochaine question.",
-        parse_mode=ParseMode.MARKDOWN,
-    )
-
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    question = update.message.text.strip()
-    if not question:
-        return
-    logger.info(f"Question de {user.first_name} (ID: {user.id}): {question[:100]}")
-    await update.message.chat.send_action(ChatAction.TYPING)
     try:
-        context_text = retrieve_context(question)
-        response = generate_response(question, context_text)
-        if len(response) > 4000:
-            parts = [response[i:i+4000] for i in range(0, len(response), 4000)]
-            for part in parts:
-                await update.message.reply_text(part, parse_mode=ParseMode.MARKDOWN)
-        else:
-            await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
-        logger.info(f"Réponse envoyée à {user.first_name} ({len(response)} caractères)")
-    except Exception as e:
-        logger.error(f"Erreur: {e}", exc_info=True)
-        await update.message.reply_text(
-            "⚠️ Désolé, j'ai rencontré une difficulté technique. Veuillez réessayer dans quelques instants."
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=1000,
+            temperature=0.7
         )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"Erreur OpenAI: {e}")
+        return "Je rencontre une difficulté technique. Merci de réessayer dans quelques instants."
 
+# ─── Handlers Telegram ────────────────────────────────────────────────────────
 
-async def handle_non_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(
-        "📝 Je suis un coach textuel ! Posez-moi votre question en texte. 😊"
+async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Message de bienvenue."""
+    user = update.effective_user
+    welcome_msg = f"""👋 Bonjour {user.first_name} !
+
+Je suis votre **Coach IA** pour la formation certifiante :
+📚 *"Intégrer l'IA dans les missions du consultant formateur"*
+
+Je suis là pour répondre à toutes vos questions sur le contenu du cours, vous aider à comprendre les concepts et vous accompagner dans votre apprentissage.
+
+**Comment m'utiliser :**
+Posez-moi simplement votre question en langage naturel !
+
+**Exemples de questions :**
+• "Qu'est-ce que le meta prompting ?"
+• "Comment utiliser Make pour automatiser les attestations ?"
+• "Quels sont les conseils pour le dossier de certification ?"
+
+**Commandes disponibles :**
+/aide - Afficher cette aide
+/modules - Liste des modules du cours
+/certification - Conseils pour la certification
+
+Bonne formation ! 🚀"""
+
+    await update.message.reply_text(welcome_msg, parse_mode=ParseMode.MARKDOWN)
+
+async def aide_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Affiche l'aide."""
+    await start_handler(update, context)
+
+async def modules_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Liste les modules du cours."""
+    modules_msg = """📚 **Modules de la formation**
+
+**Module 1 - Fondamentaux de l'IA**
+Introduction à l'IA générative, comprendre les LLMs, premiers prompts
+
+**Module 2 - L'Art du Prompt**
+Techniques de prompting, meta-prompting, prompt engineering avancé
+
+**Module 3 - Automatisation avec Make**
+Créer des workflows automatisés, connecter les outils IA, automatiser les attestations
+
+**Module 4 - IA dans la pédagogie**
+Intégrer l'IA dans la conception de formations, créer des contenus avec l'IA
+
+**Module 5 - Certification**
+Préparer le dossier de certification, critères d'évaluation, conseils pratiques
+
+Posez-moi une question sur n'importe quel module ! 💡"""
+
+    await update.message.reply_text(modules_msg, parse_mode=ParseMode.MARKDOWN)
+
+async def certification_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Conseils pour la certification."""
+    context_text = retrieve_context("certification dossier évaluation critères")
+    response = generate_response(
+        "Quels sont les conseils essentiels pour réussir la certification ?",
+        context_text
     )
+    await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
 
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Traite les messages des apprenants."""
+    if not update.message or not update.message.text:
+        return
 
-# ─── Configuration du bot Telegram ────────────────────────────────────────────
+    question = update.message.text.strip()
+    user = update.effective_user
+    logger.info(f"Question de {user.first_name} ({user.id}): {question[:50]}...")
 
-async def post_init(application: Application) -> None:
-    commands = [
-        BotCommand("start", "Démarrer le bot"),
-        BotCommand("aide", "Voir toutes les commandes"),
-        BotCommand("modules", "Liste des 6 modules"),
-        BotCommand("module1", "Module 1 - Introduction à l'IA"),
-        BotCommand("module2", "Module 2 - Conception de parcours"),
-        BotCommand("module3", "Module 3 - Automatisation"),
-        BotCommand("module4", "Module 4 - Animation et évaluation"),
-        BotCommand("module5", "Module 5 - Contenus multimédias"),
-        BotCommand("module6", "Module 6 - Veille IA"),
-        BotCommand("certification", "Infos sur la certification"),
-        BotCommand("reset", "Réinitialiser la conversation"),
-    ]
-    await application.bot.set_my_commands(commands)
-    logger.info("Commandes du bot configurées.")
+    # Indicateur de frappe
+    await update.message.chat.send_action(ChatAction.TYPING)
 
+    # Recherche du contexte
+    context_text = retrieve_context(question)
 
-# Construire l'application Telegram
-ptb_app = (
-    Application.builder()
-    .token(TELEGRAM_TOKEN)
-    .updater(None)  # Pas d'updater en mode webhook
-    .post_init(post_init)
-    .build()
-)
+    # Génération de la réponse
+    response = generate_response(question, context_text)
 
-# Enregistrer les handlers
-ptb_app.add_handler(CommandHandler("start", start_command))
-ptb_app.add_handler(CommandHandler("aide", help_command))
-ptb_app.add_handler(CommandHandler("help", help_command))
-ptb_app.add_handler(CommandHandler("modules", modules_command))
-ptb_app.add_handler(CommandHandler("module1", module1_command))
-ptb_app.add_handler(CommandHandler("module2", module2_command))
-ptb_app.add_handler(CommandHandler("module3", module3_command))
-ptb_app.add_handler(CommandHandler("module4", module4_command))
-ptb_app.add_handler(CommandHandler("module5", module5_command))
-ptb_app.add_handler(CommandHandler("module6", module6_command))
-ptb_app.add_handler(CommandHandler("certification", certification_command))
-ptb_app.add_handler(CommandHandler("reset", reset_command))
-ptb_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-ptb_app.add_handler(MessageHandler(~filters.TEXT, handle_non_text))
+    # Envoi de la réponse
+    try:
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    except Exception:
+        # Fallback sans Markdown si erreur de parsing
+        await update.message.reply_text(response)
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    """Gère les erreurs."""
+    logger.error(f"Erreur: {context.error}")
 
-# ─── Routes FastAPI ───────────────────────────────────────────────────────────
+# ─── Application FastAPI + Telegram ──────────────────────────────────────────
+
+app = FastAPI(title="Coach Formateur IA Bot")
+telegram_app = None
 
 @app.on_event("startup")
 async def startup():
-    await ptb_app.initialize()
-    await ptb_app.start()
-    # Enregistrer le webhook auprès de Telegram
-    webhook_path = f"/webhook/{TELEGRAM_TOKEN}"
-    full_url = f"{WEBHOOK_URL}{webhook_path}"
-    await ptb_app.bot.set_webhook(url=full_url)
-    logger.info(f"Webhook configuré : {full_url}")
+    global telegram_app
 
+    # Pré-charger la base de connaissances
+    load_knowledge_base()
+
+    # Configurer le bot Telegram
+    request = HTTPXRequest(connect_timeout=30, read_timeout=30)
+    telegram_app = (
+        Application.builder()
+        .token(TELEGRAM_TOKEN)
+        .request(request)
+        .build()
+    )
+
+    # Enregistrer les handlers
+    telegram_app.add_handler(CommandHandler("start", start_handler))
+    telegram_app.add_handler(CommandHandler("aide", aide_handler))
+    telegram_app.add_handler(CommandHandler("modules", modules_handler))
+    telegram_app.add_handler(CommandHandler("certification", certification_handler))
+    telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    telegram_app.add_error_handler(error_handler)
+
+    await telegram_app.initialize()
+
+    # Configurer le webhook
+    webhook_url = f"{WEBHOOK_URL}/webhook"
+    await telegram_app.bot.set_webhook(
+        url=webhook_url,
+        allowed_updates=["message", "callback_query"]
+    )
+    logger.info(f"Webhook configuré: {webhook_url}")
+
+    # Définir les commandes du menu
+    await telegram_app.bot.set_my_commands([
+        BotCommand("start", "Démarrer le coach IA"),
+        BotCommand("aide", "Afficher l'aide"),
+        BotCommand("modules", "Liste des modules"),
+        BotCommand("certification", "Conseils certification"),
+    ])
+
+    await telegram_app.start()
+    logger.info("Bot démarré avec succès !")
 
 @app.on_event("shutdown")
 async def shutdown():
-    await ptb_app.bot.delete_webhook()
-    await ptb_app.stop()
-    await ptb_app.shutdown()
-    logger.info("Bot arrêté proprement.")
+    if telegram_app:
+        await telegram_app.stop()
+        await telegram_app.shutdown()
 
-
-@app.post(f"/webhook/{{token}}")
-async def webhook_handler(token: str, request: Request):
-    """Endpoint appelé par Telegram à chaque nouveau message."""
-    if token != TELEGRAM_TOKEN:
-        return Response(status_code=403)
-    data = await request.json()
-    update = Update.de_json(data, ptb_app.bot)
-    await ptb_app.process_update(update)
-    return Response(status_code=200)
-
-
-@app.get("/")
-async def health_check():
-    """Health check pour Render."""
-    return {"status": "ok", "bot": "Coach Formateur IA", "uptime": "running"}
-
+@app.post("/webhook")
+async def webhook(request: Request):
+    """Endpoint webhook Telegram."""
+    try:
+        data = await request.json()
+        update = Update.de_json(data, telegram_app.bot)
+        await telegram_app.process_update(update)
+        return Response(content="OK", status_code=200)
+    except Exception as e:
+        logger.error(f"Erreur webhook: {e}")
+        return Response(content="Error", status_code=500)
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """Health check pour Render."""
+    kb = load_knowledge_base()
+    return {
+        "status": "healthy",
+        "bot": "coach-formateur-ia",
+        "kb_loaded": kb is not None,
+        "kb_chunks": len(kb["chunks"]) if kb else 0,
+        "timestamp": datetime.now().isoformat()
+    }
 
+@app.get("/")
+async def root():
+    return {"message": "Coach Formateur IA Bot - En ligne", "status": "ok"}
 
 # ─── Point d'entrée ───────────────────────────────────────────────────────────
 
